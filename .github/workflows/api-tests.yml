@@ -1,15 +1,12 @@
-name: Pruebas de API con Newman 
-
+name: Pruebas de API con Newman
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
 
 jobs:
-
   run-newman-tests:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout del código
         uses: actions/checkout@v4
@@ -35,34 +32,26 @@ jobs:
             -e "postman/Environment_Davi.json" \
             -d "postman/data.csv" \
             -r cli,htmlextra \
-            --reporter-htmlextra-export "newman-report/report.html" \
+            --reporter-htmlextra-export "report/index.html" \
             --env-var "admin_username=${{ secrets.HRM_USERNAME }}" \
             --env-var "admin_password=${{ secrets.HRM_PASSWORD }}"
       
-
       - name: Subir artefacto del reporte para el despliegue
         uses: actions/upload-pages-artifact@v3
         with:
 
-          path: 'newman-report/'
-
+          path: 'report/'
 
   deploy:
-
     needs: run-newman-tests
-
     permissions:
       pages: write
       id-token: write
-
-
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-
     runs-on: ubuntu-latest
     steps:
-
       - name: Desplegar en GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
