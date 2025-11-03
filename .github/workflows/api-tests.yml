@@ -4,18 +4,20 @@ name: Pruebas de API con Newman
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches:
+      - main
   
 
   workflow_dispatch:
     inputs:
-
+      
       csv_data:
-        description: 'Pega aquí el contenido del archivo CSV'
+        description: 'Pega aquí el contenido de tu CSV (incluye la cabecera)'
         required: true
         type: string
+        
+        default: "firstName,lastName,employeeId\nusuario,prueba,manual01"
+
 
 jobs:
   run-api-tests:
@@ -40,13 +42,16 @@ jobs:
           npm install -g newman-reporter-htmlextra
 
   
-      - name: Crear archivo data.csv a partir de la entrada manual
+      - name: Crear archivo data.csv
 
-        if: github.event.inputs.csv_data
         run: |
-          mkdir -p postman # Asegura que la carpeta exista
+          mkdir -p postman
+          
+          echo "Creando data.csv desde la entrada manual..."
           echo "${{ github.event.inputs.csv_data }}" > postman/data.csv
 
+          echo "Contenido de data.csv:"
+          cat postman/data.csv
 
       - name: Ejecutar Pruebas de API y Generar Reporte
         run: |
