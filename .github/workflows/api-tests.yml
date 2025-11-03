@@ -42,8 +42,8 @@ jobs:
 
       - name: Ejecutar Pruebas de API y Generar Reporte
         run: |
-          newman run "postman/Prueba_Davivienda.postman_collection.json" \
-            -e "postman/Davivienda_Env.postman_environment.json" \
+          newman run "postman/Collection_Davi.json" \
+            -e "postman/Environment_Davi.json" \
             -d "postman/data.csv" \
             -r cli,htmlextra \
             --reporter-htmlextra-export "newman-report/report.html" \
