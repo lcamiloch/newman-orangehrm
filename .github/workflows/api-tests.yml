@@ -34,11 +34,6 @@ jobs:
         run: |
           mkdir -p postman # Asegura que la carpeta exista
           echo "${{ secrets.DATA_CSV_CONTENT }}" > postman/data.csv
-          
-          # Paso de verificación para depuración: Muestra el contenido del archivo creado
-          echo "--- Contenido de data.csv creado ---"
-          cat postman/data.csv
-          echo "------------------------------------"
 
       - name: Ejecutar Pruebas de API y Generar Reporte
         run: |
