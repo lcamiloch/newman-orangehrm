@@ -6,18 +6,7 @@ on:
   push:
     branches:
       - main
-  
-
-  workflow_dispatch:
-    inputs:
-      
-      csv_data:
-        description: 'Pega aquí el contenido de tu CSV (incluye la cabecera)'
-        required: true
-        type: string
-        
-        default: "firstName,lastName,employeeId\nusuario,prueba,manual01"
-
+  workflow_dispatch: 
 
 jobs:
   run-api-tests:
@@ -41,29 +30,27 @@ jobs:
           npm install -g newman
           npm install -g newman-reporter-htmlextra
 
-  
-      - name: Crear archivo data.csv
-
+      - name: Crear archivo de datos desde el secreto
         run: |
-          mkdir -p postman
+          mkdir -p postman # Asegura que la carpeta exista
+          echo "${{ secrets.DATA_CSV_CONTENT }}" > postman/data.csv
           
-          echo "Creando data.csv desde la entrada manual..."
-          echo "${{ github.event.inputs.csv_data }}" > postman/data.csv
-
-          echo "Contenido de data.csv:"
+          # Paso de verificación para depuración: Muestra el contenido del archivo creado
+          echo "--- Contenido de data.csv creado ---"
           cat postman/data.csv
+          echo "------------------------------------"
 
       - name: Ejecutar Pruebas de API y Generar Reporte
         run: |
           newman run "postman/Prueba_Davivienda.postman_collection.json" \
             -e "postman/Davivienda_Env.postman_environment.json" \
-            -d "postman/data.csv" \ # Usará el archivo recién creado
+            -d "postman/data.csv" \
             -r cli,htmlextra \
             --reporter-htmlextra-export "newman-report/report.html" \
-            --env-var "admin_username=${{ secrets.ADMIN_USER }}" \
-            --env-var "admin_password=${{ secrets.ADMIN_PASS }}"
-      
-  
+            --env-var "admin_username=${{ secrets.HRM_USERNAME }}" \
+            --env-var "admin_password=${{ secrets.HRM_PASSWORD }}"
+
+
       - name: Subir artefacto del reporte
         uses: actions/upload-pages-artifact@v3
         with:
