@@ -1,0 +1,289 @@
+{
+	"info": {
+		"_postman_id": "a4efb957-62b0-42ab-8e33-09c3872c42e3",
+		"name": "Prueba_Davivienda",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "15724339"
+	},
+	"item": [
+		{
+			"name": "LogOut",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"El logout fue exitoso y redirigió correctamente\", function () {\r",
+							"\r",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 302]);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/auth/logout",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"auth",
+						"logout"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Token_CSRF",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"El código de estado es 200 OK\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"responseBody = pm.response.text();\r",
+							"const regex = /:token=\"&quot;([^\"]+)&quot;\"/;\r",
+							"const match = responseBody.match(regex);\r",
+							"\r",
+							"\r",
+							"if (match[1]) {\r",
+							"\r",
+							"    pm.environment.set(\"csrf_token\", match[1]);\r",
+							"    console.log(\"Token CSRF guardado exitosamente: \" + match[1]);\r",
+							"} else {\r",
+							"\r",
+							"    console.error(\"ERROR: No se pudo extraer el token CSRF. La respuesta puede no ser la página de login.\");\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/auth/login",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"El código de estado es 200 OK o 302 Found\", function () {\r",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 302]);\r",
+							"});\r",
+							"\r",
+							"const sessionCookie = pm.cookies.get('orangehrm');\r",
+							"pm.environment.set(\"session_cookie\", sessionCookie);"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "_token",
+							"value": "{{csrf_token}}",
+							"type": "text"
+						},
+						{
+							"key": "username",
+							"value": "{{admin_username}}",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "{{admin_password}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{base_url}}/auth/validate",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"auth",
+						"validate"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "User_Create",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"El código de estado es 201 o 200\", function () {\r",
+							"    pm.expect(pm.response.code).to.be.oneOf([201, 200]);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"const schema = {\r",
+							"  \"type\": \"object\",\r",
+							"  \"properties\": {\r",
+							"    \"data\": {\r",
+							"      \"type\": \"object\",\r",
+							"      \"properties\": {\r",
+							"        \"empNumber\": { \"type\": \"number\" },\r",
+							"        \"lastName\": { \"type\": \"string\" },\r",
+							"        \"firstName\": { \"type\": \"string\" },\r",
+							"        \"middleName\": { \"type\": \"string\" },\r",
+							"        \"employeeId\": { \"type\": \"string\" },\r",
+							"        \"terminationId\": { \"type\": [\"null\", \"string\"] }\r",
+							"      },\r",
+							"      \"required\": [\"empNumber\", \"lastName\", \"firstName\", \"middleName\", \"employeeId\"]\r",
+							"    },\r",
+							"    \"meta\": { \"type\": \"array\" },\r",
+							"    \"rels\": { \"type\": \"array\" }\r",
+							"  },\r",
+							"  \"required\": [\"data\", \"meta\", \"rels\"]\r",
+							"};\r",
+							"\r",
+							"pm.test(\"La respuesta se ajusta al esquema JSON\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    pm.response.to.have.jsonSchema(schema);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept-Language",
+						"value": "es-US,es-419;q=0.9,es;q=0.8"
+					},
+					{
+						"key": "Connection",
+						"value": "keep-alive"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Origin",
+						"value": "https://opensource-demo.orangehrmlive.com"
+					},
+					{
+						"key": "Referer",
+						"value": "https://opensource-demo.orangehrmlive.com/web/index.php/pim/addEmployee"
+					},
+					{
+						"key": "Sec-Fetch-Dest",
+						"value": "empty"
+					},
+					{
+						"key": "Sec-Fetch-Mode",
+						"value": "cors"
+					},
+					{
+						"key": "Sec-Fetch-Site",
+						"value": "same-origin"
+					},
+					{
+						"key": "User-Agent",
+						"value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+					},
+					{
+						"key": "sec-ch-ua",
+						"value": "\"Google Chrome\";v=\"141\", \"Not?A_Brand\";v=\"8\", \"Chromium\";v=\"141\""
+					},
+					{
+						"key": "sec-ch-ua-mobile",
+						"value": "?0"
+					},
+					{
+						"key": "sec-ch-ua-platform",
+						"value": "\"Windows\""
+					},
+					{
+						"key": "Cookie",
+						"value": "{{session_cookie}}"
+					},
+					{
+						"key": "X-CSRF-TOKEN",
+						"value": "{{csrf_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"firstName\":\"{{firstName}}\",\r\n    \"middleName\":\"\",\r\n    \"lastName\":\"{{lastName}}\",\r\n    \"empPicture\":null,\r\n    \"employeeId\":\"{{employeeId}}\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/v2/pim/employees",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v2",
+						"pim",
+						"employees"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

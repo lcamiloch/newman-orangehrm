@@ -1,0 +1,69 @@
+
+name: Pruebas de API con Newman
+
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  
+
+  workflow_dispatch:
+    inputs:
+
+      csv_data:
+        description: 'Pega aquí el contenido del archivo CSV'
+        required: true
+        type: string
+
+jobs:
+  run-api-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Instalar Newman y el Reporter htmlextra
+        run: |
+          npm install -g newman
+          npm install -g newman-reporter-htmlextra
+
+  
+      - name: Crear archivo data.csv a partir de la entrada manual
+
+        if: github.event.inputs.csv_data
+        run: |
+          mkdir -p postman # Asegura que la carpeta exista
+          echo "${{ github.event.inputs.csv_data }}" > postman/data.csv
+
+
+      - name: Ejecutar Pruebas de API y Generar Reporte
+        run: |
+          newman run "postman/Prueba_Davivienda.postman_collection.json" \
+            -e "postman/Davivienda_Env.postman_environment.json" \
+            -d "postman/data.csv" \ # Usará el archivo recién creado
+            -r cli,htmlextra \
+            --reporter-htmlextra-export "newman-report/report.html" \
+            --env-var "admin_username=${{ secrets.ADMIN_USER }}" \
+            --env-var "admin_password=${{ secrets.ADMIN_PASS }}"
+      
+  
+      - name: Subir artefacto del reporte
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './newman-report'
+
+      - name: Desplegar en GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
